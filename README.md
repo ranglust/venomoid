@@ -1,5 +1,5 @@
 # venomoid
-![branch status](https://github.com/ranglust/venomoid/actions/workflows/go.yml/badge.svg?branch=main)
+![branch status](https://github.com/ranglust/venomoid/actions/workflows/main.yml/badge.svg?branch=main)
 
 
 ## Overview
