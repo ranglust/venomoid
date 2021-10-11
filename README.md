@@ -1,4 +1,6 @@
 # venomoid
+![branch status](https://github.com/ranglust/venomoid/actions/workflows/go.yml/badge.svg?branch=main)
+
 
 ## Overview
 [Venomoid](https://en.wikipedia.org/wiki/Venomoid) is a builder pattern that simplifies the use of [viper](https://github.com/spf13/viper) and reduce
