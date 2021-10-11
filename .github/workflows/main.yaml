@@ -23,3 +23,21 @@ jobs:
 
     - name: Test
       run: go test -v -cover ./...
+    
+    - name: coverage
+      run: |
+        COVERAGE=$(go test -cover ./... | awk '{print $(NF-2}')
+        echo "COVERAGE=$(echo ${COVERAGE})" >> $GITHUB_ENV
+
+    - name: Create the Badge
+      uses: schneegans/dynamic-badges-action@v1.0.0
+      with:
+        auth: ${{ secrets.COVERAGE_GIST_SECRET }}
+        gistID: 720f73912f5b895dcc9b63d2a872cc00
+        filename: venomoid__${{ env.BRANCH }}.json
+        label: Test Coverage
+        message: ${{ env.COVERAGE }}
+        color: green
+        namedLogo: jest
+
+
