@@ -1,5 +1,5 @@
 # venomoid
-![branch status](https://github.com/ranglust/venomoid/actions/workflows/main.yml/badge.svg?branch=main)
+[![Main](https://github.com/ranglust/venomoid/actions/workflows/main.yaml/badge.svg?branch=main)](https://github.com/ranglust/venomoid/actions/workflows/main.yaml) ![test coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/ranglust/720f73912f5b895dcc9b63d2a872cc00/raw/venomoid__.json)
 
 
 ## Overview
