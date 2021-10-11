@@ -3,8 +3,8 @@
 
 
 ## Overview
-[Venomoid](https://en.wikipedia.org/wiki/Venomoid) is a builder pattern that simplifies the use of [viper](https://github.com/spf13/viper) and reduce
-the need for builderplating viper in every project
+[Venomoid](https://en.wikipedia.org/wiki/Venomoid) utlizes the builder pattern in order to simplify the use of [viper](https://github.com/spf13/viper) and reduce
+the builderplate footprint n every project
 
 ## Download
 To download the package run:
