@@ -21,6 +21,7 @@ type ConfigBuilder struct {
 	configLookup       bool
 	automaticEnv       bool
 	bindEnv            []string
+	envPrefix          string
 	errorOnMissingFile bool
 }
 
@@ -83,6 +84,11 @@ func (c *ConfigBuilder) Build(destStruct interface{}) error {
 		}
 	} else if c.automaticEnv {
 		viper.AutomaticEnv()
+
+		if c.envPrefix != "" {
+			viper.SetEnvPrefix(c.envPrefix)
+		}
+
 		if len(c.bindEnv) != 0 {
 			err := viper.BindEnv(c.bindEnv...)
 			if err != nil {
@@ -135,6 +141,13 @@ func (c *ConfigBuilder) WithAutomaticEnv(automaticEnv bool) *ConfigBuilder {
 }
 
 func (c *ConfigBuilder) WithBindEnv(input ...string) *ConfigBuilder {
-	c.bindEnv = input
+	for _, ip := range input {
+		c.bindEnv = append(c.bindEnv, ip)
+	}
+	return c
+}
+
+func (c *ConfigBuilder) WithEnvPrefix(prefix string) *ConfigBuilder {
+	c.envPrefix = prefix
 	return c
 }

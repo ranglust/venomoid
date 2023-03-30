@@ -212,10 +212,46 @@ func TestConfigBuilder_WithAutomaticEnv(t *testing.T) {
 		WithErrorOnMissing(false).
 		WithConfigLookup(false).
 		WithAutomaticEnv(true).
-		WithBindEnv("keyString").
 		Build(config)
 
-	assert.Equal(t, "key_value", config.KeyString)
 	assert.Equal(t, "key_value", viper.Get("keyString"))
+	assert.NotEqual(t, "key_value", config.KeyString)
+	assert.NoError(t, err)
+}
+
+func TestConfigBuilder_WithBindEnv(t *testing.T) {
+	config := &testConfig{}
+	_ = os.Setenv("KEYSTRING", "key_value")
+
+	c := Config()
+	err := c.WithName("test-config").
+		WithType("yaml").
+		WithErrorOnMissing(false).
+		WithConfigLookup(false).
+		WithAutomaticEnv(true).
+		WithBindEnv("keystring").
+		Build(config)
+
+	assert.Equal(t, "key_value", viper.Get("keyString"))
+	assert.Equal(t, "key_value", config.KeyString)
+	assert.NoError(t, err)
+}
+
+func TestConfigBuilder_WithEnvPrefix(t *testing.T) {
+	config := &testConfig{}
+	_ = os.Setenv("PRE_KEYSTRING", "key_value")
+
+	c := Config()
+	err := c.WithName("test-config").
+		WithType("yaml").
+		WithErrorOnMissing(false).
+		WithConfigLookup(false).
+		WithAutomaticEnv(true).
+		WithBindEnv("keystring").
+		WithEnvPrefix("pre").
+		Build(config)
+
+	assert.Equal(t, "key_value", viper.Get("keyString"))
+	assert.Equal(t, "key_value", config.KeyString)
 	assert.NoError(t, err)
 }
