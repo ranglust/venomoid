@@ -2,7 +2,7 @@ package venomoid
 
 import "fmt"
 
-var ErrorLookupAndFileMismatch = fmt.Errorf("key mismatch, either configLookup or configFile must be supplied")
+var ErrorLookupAndFileMismatchAndAutomaticEnv = fmt.Errorf("key mismatch, either configLookup or configFile or automaticEnv must be supplied")
 var ErrorMissingConfigFile = fmt.Errorf("config file not found")
 
 type ErrorWrapper struct {

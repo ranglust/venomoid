@@ -9,6 +9,7 @@ const (
 	defaultErrorOnMissingFile = true
 	defaultConfigLookup       = true
 	defaultConfigType         = "yaml"
+	defaultAutomaticEnv       = false
 )
 
 type ConfigBuilder struct {
@@ -18,6 +19,9 @@ type ConfigBuilder struct {
 	defaults           map[string]interface{}
 	configFile         string
 	configLookup       bool
+	automaticEnv       bool
+	bindEnv            []string
+	envPrefix          string
 	errorOnMissingFile bool
 }
 
@@ -26,12 +30,13 @@ func Config() *ConfigBuilder {
 		configLookup:       defaultConfigLookup,
 		errorOnMissingFile: defaultErrorOnMissingFile,
 		configType:         defaultConfigType,
+		automaticEnv:       defaultAutomaticEnv,
 	}
 }
 
 func (c *ConfigBuilder) Build(destStruct interface{}) error {
-	if c.configFile == "" && c.configLookup == false {
-		return ErrorLookupAndFileMismatch
+	if c.configFile == "" && c.configLookup == false && c.automaticEnv == false {
+		return ErrorLookupAndFileMismatchAndAutomaticEnv
 	}
 	viper.SetConfigName(c.name)
 	viper.SetConfigType(c.configType)
@@ -77,6 +82,19 @@ func (c *ConfigBuilder) Build(destStruct interface{}) error {
 				}
 			}
 		}
+	} else if c.automaticEnv {
+		viper.AutomaticEnv()
+
+		if c.envPrefix != "" {
+			viper.SetEnvPrefix(c.envPrefix)
+		}
+
+		if len(c.bindEnv) != 0 {
+			err := viper.BindEnv(c.bindEnv...)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return viper.Unmarshal(&destStruct)
@@ -114,5 +132,22 @@ func (c *ConfigBuilder) WithConfigLookup(configLookup bool) *ConfigBuilder {
 
 func (c *ConfigBuilder) WithErrorOnMissing(eom bool) *ConfigBuilder {
 	c.errorOnMissingFile = eom
+	return c
+}
+
+func (c *ConfigBuilder) WithAutomaticEnv(automaticEnv bool) *ConfigBuilder {
+	c.automaticEnv = automaticEnv
+	return c
+}
+
+func (c *ConfigBuilder) WithBindEnv(input ...string) *ConfigBuilder {
+	for _, ip := range input {
+		c.bindEnv = append(c.bindEnv, ip)
+	}
+	return c
+}
+
+func (c *ConfigBuilder) WithEnvPrefix(prefix string) *ConfigBuilder {
+	c.envPrefix = prefix
 	return c
 }

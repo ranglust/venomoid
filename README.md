@@ -21,6 +21,7 @@ package main
 import (
 	"fmt"
 	"github.com/ranglust/venomoid"
+	"os"
 )
 
 type myConfig struct {
@@ -63,6 +64,39 @@ func main() {
 		WithConfigLookup(false).
 		WithDefaults(defaults).
 		WithFile(configFile).
+		Build(config)
+
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+
+	// Load environment variables
+	// Using only WithAutomaticEnv, only allows you to access using `viper.Get(envKey)`
+	// Using WithBindEnv, allows you to access using `config.envKey`
+	envKey := "my_key"
+	os.Setenv("MY_KEY", "my_value") // required key in the env
+	err = venomoid.Config().WithName("shineyconfig").
+		WithErrorOnMissing(true).
+		WithDefaults(defaults).
+		WithAutomaticEnv(true).
+		WithBindEnv(envKey).
+		Build(config)
+
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+
+	// Load environment variables
+	// EnvPrefix adds given prefix to all env variables when looking them up
+	envKey = "my_key"
+	keyPrefix := "pre"
+	os.Setenv("PRE_MY_KEY", "my_value") // required key in the env
+	err = venomoid.Config().WithName("shineyconfig").
+		WithErrorOnMissing(true).
+		WithDefaults(defaults).
+		WithAutomaticEnv(true).
+		WithBindEnv(envKey).
+		WithEnvPrefix(keyPrefix).
 		Build(config)
 
 	if err != nil {
