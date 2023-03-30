@@ -207,12 +207,12 @@ func TestConfigBuilder_WithAutomaticEnv(t *testing.T) {
 	_ = os.Setenv("KEYSTRING", "key_value")
 
 	c := Config()
-	_ = BindEnv("keyString")
 	err := c.WithName("test-config").
 		WithType("yaml").
 		WithErrorOnMissing(false).
 		WithConfigLookup(false).
 		WithAutomaticEnv(true).
+		WithBindEnv("keyString").
 		Build(config)
 
 	assert.Equal(t, "key_value", config.KeyString)

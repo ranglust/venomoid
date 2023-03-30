@@ -68,6 +68,21 @@ func main() {
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
+
+	// Load environment variables
+	// Using only WithAutomaticEnv, only allows you to access using `viper.Get(envKey)`
+	// Using WithBindEnv, allows you to access using `config.envKey`
+	envKey := "my_key"
+	err = venomoid.Config().WithName("shineyconfig").
+		WithErrorOnMissing(true).
+		WithDefaults(defaults).
+		WithAutomaticEnv(true).
+		WithBindEnv(envKey).
+		Build(config)
+
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
 }
 
 ```
