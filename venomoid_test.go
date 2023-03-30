@@ -2,6 +2,7 @@ package venomoid
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
@@ -26,7 +27,7 @@ func TestConfigBuilder_BuildNoLookupOrFile(t *testing.T) {
 	config := &testConfig{}
 
 	err := c.WithName("test-config").WithConfigLookup(false).WithFile("").Build(config)
-	assert.Equal(t, ErrorLookupAndFileMismatch, err, "unexpected error")
+	assert.Equal(t, ErrorLookupAndFileMismatchAndAutomaticEnv, err, "unexpected error")
 }
 
 func TestConfigBuilder_BuildWithConfigfileBadFile(t *testing.T) {
@@ -185,4 +186,36 @@ func TestConfigBuilder_BuildWithMissingConfigFileOk(t *testing.T) {
 		Build(config)
 
 	assert.NoError(t, err, "unexpected error")
+}
+
+func TestConfigBuilder_BuildWithMissingAutomaticEnvError(t *testing.T) {
+	config := &testConfig{}
+
+	c := Config()
+	err := c.WithName("test-config").
+		WithType("yaml").
+		WithErrorOnMissing(false).
+		WithConfigLookup(false).
+		WithAutomaticEnv(false).
+		Build(config)
+
+	assert.Error(t, err, ErrorLookupAndFileMismatchAndAutomaticEnv)
+}
+
+func TestConfigBuilder_WithAutomaticEnv(t *testing.T) {
+	config := &testConfig{}
+	_ = os.Setenv("KEYSTRING", "key_value")
+
+	c := Config()
+	_ = BindEnv("keyString")
+	err := c.WithName("test-config").
+		WithType("yaml").
+		WithErrorOnMissing(false).
+		WithConfigLookup(false).
+		WithAutomaticEnv(true).
+		Build(config)
+
+	assert.Equal(t, "key_value", config.KeyString)
+	assert.Equal(t, "key_value", viper.Get("keyString"))
+	assert.NoError(t, err)
 }
