@@ -17,9 +17,9 @@ type testConfig struct {
 
 func TestConfigBuilder_BuildWithDefaults(t *testing.T) {
 	c := Config()
-	assert.Equal(t, c.errorOnMissingFile, true, "errorOnMissingFile default is not true")
-	assert.Equal(t, c.configLookup, true, "configLookup default is not true")
-	assert.Equal(t, c.configType, "yaml", "configType default is not yaml")
+	assert.Equal(t, c.ErrorOnMissingFile, true, "ErrorOnMissingFile default is not true")
+	assert.Equal(t, c.ConfigLookup, true, "ConfigLookup default is not true")
+	assert.Equal(t, c.ConfigType, "yaml", "ConfigType default is not yaml")
 }
 
 func TestConfigBuilder_BuildNoLookupOrFile(t *testing.T) {

@@ -13,47 +13,47 @@ const (
 )
 
 type ConfigBuilder struct {
-	name               string
-	configType         string
-	path               []string
-	defaults           map[string]interface{}
-	configFile         string
-	configLookup       bool
-	automaticEnv       bool
-	bindEnv            []string
-	envPrefix          string
-	errorOnMissingFile bool
+	Name               string
+	ConfigType         string
+	Path               []string
+	Defaults           map[string]interface{}
+	ConfigFile         string
+	ConfigLookup       bool
+	AutomaticEnv       bool
+	BindEnv            []string
+	EnvPrefix          string
+	ErrorOnMissingFile bool
 }
 
 func Config() *ConfigBuilder {
 	return &ConfigBuilder{
-		configLookup:       defaultConfigLookup,
-		errorOnMissingFile: defaultErrorOnMissingFile,
-		configType:         defaultConfigType,
-		automaticEnv:       defaultAutomaticEnv,
+		ConfigLookup:       defaultConfigLookup,
+		ErrorOnMissingFile: defaultErrorOnMissingFile,
+		ConfigType:         defaultConfigType,
+		AutomaticEnv:       defaultAutomaticEnv,
 	}
 }
 
 func (c *ConfigBuilder) Build(destStruct interface{}) error {
-	if c.configFile == "" && c.configLookup == false && c.automaticEnv == false {
+	if c.ConfigFile == "" && c.ConfigLookup == false && c.AutomaticEnv == false {
 		return ErrorLookupAndFileMismatchAndAutomaticEnv
 	}
-	viper.SetConfigName(c.name)
-	viper.SetConfigType(c.configType)
+	viper.SetConfigName(c.Name)
+	viper.SetConfigType(c.ConfigType)
 
-	if c.configLookup {
-		for _, path := range c.path {
+	if c.ConfigLookup {
+		for _, path := range c.Path {
 			viper.AddConfigPath(path)
 		}
 	}
 
-	for key, value := range c.defaults {
+	for key, value := range c.Defaults {
 		viper.SetDefault(key, value)
 	}
 
-	if c.configFile != "" {
-		f, err := os.Open(c.configFile)
-		if err != nil && c.errorOnMissingFile {
+	if c.ConfigFile != "" {
+		f, err := os.Open(c.ConfigFile)
+		if err != nil && c.ErrorOnMissingFile {
 			return &ErrorWrapper{
 				InternalError: err,
 				Label:         "error opening file",
@@ -69,10 +69,10 @@ func (c *ConfigBuilder) Build(destStruct interface{}) error {
 			}
 
 		}
-	} else if c.configLookup {
+	} else if c.ConfigLookup {
 		if err := viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				if c.errorOnMissingFile {
+				if c.ErrorOnMissingFile {
 					return ErrorMissingConfigFile
 				}
 			} else {
@@ -82,15 +82,15 @@ func (c *ConfigBuilder) Build(destStruct interface{}) error {
 				}
 			}
 		}
-	} else if c.automaticEnv {
+	} else if c.AutomaticEnv {
 		viper.AutomaticEnv()
 
-		if c.envPrefix != "" {
-			viper.SetEnvPrefix(c.envPrefix)
+		if c.EnvPrefix != "" {
+			viper.SetEnvPrefix(c.EnvPrefix)
 		}
 
-		if len(c.bindEnv) != 0 {
-			err := viper.BindEnv(c.bindEnv...)
+		if len(c.BindEnv) != 0 {
+			err := viper.BindEnv(c.BindEnv...)
 			if err != nil {
 				return err
 			}
@@ -101,53 +101,53 @@ func (c *ConfigBuilder) Build(destStruct interface{}) error {
 }
 
 func (c *ConfigBuilder) WithName(name string) *ConfigBuilder {
-	c.name = name
+	c.Name = name
 	return c
 }
 
 func (c *ConfigBuilder) WithType(fileType string) *ConfigBuilder {
-	c.configType = fileType
+	c.ConfigType = fileType
 	return c
 }
 
 func (c *ConfigBuilder) WithPath(paths []string) *ConfigBuilder {
-	c.path = paths
+	c.Path = paths
 	return c
 }
 
 func (c *ConfigBuilder) WithDefaults(defaults map[string]interface{}) *ConfigBuilder {
-	c.defaults = defaults
+	c.Defaults = defaults
 	return c
 }
 
 func (c *ConfigBuilder) WithFile(configFile string) *ConfigBuilder {
-	c.configFile = configFile
+	c.ConfigFile = configFile
 	return c
 }
 
 func (c *ConfigBuilder) WithConfigLookup(configLookup bool) *ConfigBuilder {
-	c.configLookup = configLookup
+	c.ConfigLookup = configLookup
 	return c
 }
 
 func (c *ConfigBuilder) WithErrorOnMissing(eom bool) *ConfigBuilder {
-	c.errorOnMissingFile = eom
+	c.ErrorOnMissingFile = eom
 	return c
 }
 
 func (c *ConfigBuilder) WithAutomaticEnv(automaticEnv bool) *ConfigBuilder {
-	c.automaticEnv = automaticEnv
+	c.AutomaticEnv = automaticEnv
 	return c
 }
 
 func (c *ConfigBuilder) WithBindEnv(input ...string) *ConfigBuilder {
 	for _, ip := range input {
-		c.bindEnv = append(c.bindEnv, ip)
+		c.BindEnv = append(c.BindEnv, ip)
 	}
 	return c
 }
 
 func (c *ConfigBuilder) WithEnvPrefix(prefix string) *ConfigBuilder {
-	c.envPrefix = prefix
+	c.EnvPrefix = prefix
 	return c
 }

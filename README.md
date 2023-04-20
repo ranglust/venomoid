@@ -102,6 +102,21 @@ func main() {
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
+	
+	// can be also be called using the exported struct direcly
+	configBuilder := &venomoid.ConfigBuilder{
+		Name:               "shineyconfig",
+		Defaults:           defaults,
+		AutomaticEnv:       true,
+		BindEnv:            []string{envKey},
+		EnvPrefix:          keyPrefix,
+		ErrorOnMissingFile: true,
+	}
+	if err := configBuilder.Build(config); err != nil {
+		fmt.Printf("error: %v\n", err)
+    }
+
+
 }
 
 ```
