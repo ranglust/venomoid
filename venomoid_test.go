@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -132,6 +133,44 @@ func TestConfigBuilder_BuildWithLookup(t *testing.T) {
 
 }
 
+func TestConfigBuilder_BuildWithLookupMultiple(t *testing.T) {
+	tempDir, _ := ioutil.TempDir("/tmp", "venmoid_tempd*")
+	defer os.RemoveAll(tempDir)
+
+	output1 := []byte("---\nkeystring: \"string\"\n")
+	output2 := []byte("---\nkeybool: true\n")
+
+	fileName1 := filepath.Join(tempDir, "testconfig1.yaml")
+	fileName2 := filepath.Join(tempDir, "testconfig2.yaml")
+
+	_ = os.WriteFile(fileName1, output1, 0644)
+	defer os.Remove(fileName1)
+
+	_ = os.WriteFile(fileName2, output2, 0644)
+	defer os.Remove(fileName2)
+
+	paths := []string{tempDir}
+	defaults := map[string]interface{}{
+		"keyint": 5,
+	}
+
+	config := &testConfig{}
+
+	c := Config()
+	err := c.WithName("testconfig1").WithName("testconfig2").
+		WithPath(paths).
+		WithType("yaml").
+		WithErrorOnMissing(true).
+		WithConfigLookup(true).
+		WithDefaults(defaults).
+		Build(config)
+
+	assert.NoError(t, err, "did not expect an error")
+	assert.Equal(t, true, config.KeyBool, "boolean key mismatch")
+	assert.Equal(t, "string", config.KeyString, "string key mismatch")
+	assert.Equal(t, 5, config.KeyInt, "int key mismatch. default did not load")
+}
+
 func TestConfigBuilder_BuildWithConfigFile(t *testing.T) {
 	tempFile, _ := ioutil.TempFile("/tmp", "venomoid_tempf")
 	defer os.Remove(tempFile.Name())
@@ -148,6 +187,43 @@ func TestConfigBuilder_BuildWithConfigFile(t *testing.T) {
 	c := Config()
 	err := c.WithName("test-config").
 		WithFile(tempFile.Name()).
+		WithType("yaml").
+		WithErrorOnMissing(true).
+		WithConfigLookup(false).
+		WithDefaults(defaults).
+		Build(config)
+
+	assert.NoError(t, err, "did not expect an error")
+	assert.Equal(t, true, config.KeyBool, "boolean key mismatch")
+	assert.Equal(t, "string", config.KeyString, "string key mismatch")
+	assert.Equal(t, 5, config.KeyInt, "int key mismatch. default did not load")
+}
+
+func TestConfigBuilder_BuildWithMultipleConfigFiles(t *testing.T) {
+	tempDir, _ := ioutil.TempDir("/tmp", "venmoid_tempd*")
+	defer os.RemoveAll(tempDir)
+
+	output1 := []byte("---\nkeystring: \"string\"\n")
+	output2 := []byte("---\nkeybool: true\n")
+
+	fileName1 := filepath.Join(tempDir, "testconfig1.yaml")
+	fileName2 := filepath.Join(tempDir, "testconfig2.yaml")
+
+	_ = os.WriteFile(fileName1, output1, 0644)
+	defer os.Remove(fileName1)
+
+	_ = os.WriteFile(fileName2, output2, 0644)
+	defer os.Remove(fileName2)
+
+	defaults := map[string]interface{}{
+		"keyint": 5,
+	}
+
+	config := &testConfig{}
+
+	c := Config()
+	err := c.WithName("test-config").
+		WithFile(fileName1).WithFile(fileName2).
 		WithType("yaml").
 		WithErrorOnMissing(true).
 		WithConfigLookup(false).

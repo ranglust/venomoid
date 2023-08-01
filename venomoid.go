@@ -1,6 +1,7 @@
 package venomoid
 
 import (
+	"errors"
 	"github.com/spf13/viper"
 	"os"
 )
@@ -13,11 +14,11 @@ const (
 )
 
 type ConfigBuilder struct {
-	Name               string
+	Name               []string
 	ConfigType         string
 	Path               []string
 	Defaults           map[string]interface{}
-	ConfigFile         string
+	ConfigFiles        []string
 	ConfigLookup       bool
 	AutomaticEnv       bool
 	BindEnv            []string
@@ -35,10 +36,10 @@ func Config() *ConfigBuilder {
 }
 
 func (c *ConfigBuilder) Build(destStruct interface{}) error {
-	if c.ConfigFile == "" && c.ConfigLookup == false && c.AutomaticEnv == false {
+	if len(c.ConfigFiles) == 0 && c.ConfigLookup == false && c.AutomaticEnv == false {
 		return ErrorLookupAndFileMismatchAndAutomaticEnv
 	}
-	viper.SetConfigName(c.Name)
+
 	viper.SetConfigType(c.ConfigType)
 
 	if c.ConfigLookup {
@@ -51,34 +52,70 @@ func (c *ConfigBuilder) Build(destStruct interface{}) error {
 		viper.SetDefault(key, value)
 	}
 
-	if c.ConfigFile != "" {
-		f, err := os.Open(c.ConfigFile)
-		if err != nil && c.ErrorOnMissingFile {
-			return &ErrorWrapper{
-				InternalError: err,
-				Label:         "error opening file",
-			}
-		}
-		defer f.Close()
-
-		if err := viper.ReadConfig(f); err != nil {
-			// no need to handle viper.ConfigFileNotFoundError since os.Open takes care of that
-			return &ErrorWrapper{
-				InternalError: err,
-				Label:         "could not read from config file",
-			}
-
-		}
-	} else if c.ConfigLookup {
-		if err := viper.ReadInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				if c.ErrorOnMissingFile {
-					return ErrorMissingConfigFile
+	if len(c.ConfigFiles) > 0 {
+		for i, configFile := range c.ConfigFiles {
+			f, err := os.Open(configFile)
+			if err != nil && c.ErrorOnMissingFile {
+				return &ErrorWrapper{
+					InternalError: err,
+					Label:         "error opening file",
 				}
-			} else {
+			}
+
+			if i > 0 {
+				if err := viper.MergeConfig(f); err != nil {
+					_ = f.Close()
+					return &ErrorWrapper{
+						InternalError: err,
+						Label:         "could not read from config file",
+					}
+				}
+				_ = f.Close()
+				continue
+			}
+
+			if err := viper.ReadConfig(f); err != nil {
+				_ = f.Close()
+				// no need to handle viper.ConfigFileNotFoundError since os.Open takes care of that
 				return &ErrorWrapper{
 					InternalError: err,
 					Label:         "could not read from config file",
+				}
+			}
+			_ = f.Close()
+		}
+	} else if c.ConfigLookup {
+		for i, name := range c.Name {
+			viper.SetConfigName(name)
+
+			if i > 0 {
+				if err := viper.MergeInConfig(); err != nil {
+					var configFileNotFoundError viper.ConfigFileNotFoundError
+					if errors.As(err, &configFileNotFoundError) {
+						if c.ErrorOnMissingFile {
+							return ErrorMissingConfigFile
+						}
+					} else {
+						return &ErrorWrapper{
+							InternalError: err,
+							Label:         "could not read from config file",
+						}
+					}
+				}
+				continue
+			}
+
+			if err := viper.ReadInConfig(); err != nil {
+				var configFileNotFoundError viper.ConfigFileNotFoundError
+				if errors.As(err, &configFileNotFoundError) {
+					if c.ErrorOnMissingFile {
+						return ErrorMissingConfigFile
+					}
+				} else {
+					return &ErrorWrapper{
+						InternalError: err,
+						Label:         "could not read from config file",
+					}
 				}
 			}
 		}
@@ -101,7 +138,16 @@ func (c *ConfigBuilder) Build(destStruct interface{}) error {
 }
 
 func (c *ConfigBuilder) WithName(name string) *ConfigBuilder {
-	c.Name = name
+	if name == "" {
+		return c
+	}
+
+	for _, cName := range c.Name {
+		if cName == name {
+			return c
+		}
+	}
+	c.Name = append(c.Name, name)
 	return c
 }
 
@@ -121,7 +167,16 @@ func (c *ConfigBuilder) WithDefaults(defaults map[string]interface{}) *ConfigBui
 }
 
 func (c *ConfigBuilder) WithFile(configFile string) *ConfigBuilder {
-	c.ConfigFile = configFile
+	if configFile == "" {
+		return c
+	}
+
+	for _, cFile := range c.ConfigFiles {
+		if cFile == configFile {
+			return c
+		}
+	}
+	c.ConfigFiles = append(c.ConfigFiles, configFile)
 	return c
 }
 
