@@ -55,6 +55,22 @@ func main() {
 		fmt.Printf("error: %v\n", err)
 	}
 
+	// lookup multiple config file in given paths and merge them
+	// configfile must example name + "." + type
+	// i.e. shineyconfig.yaml and shineyconfig-secrets.yaml
+	err = venomoid.Config().WithName("shineyconfig").
+		WithName("shineyconfig-secrets").
+		WithPath(paths).
+		WithType("yaml").
+		WithErrorOnMissing(false).
+		WithConfigLookup(true).
+		WithDefaults(defaults).
+		Build(config)
+
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+
 	// Load config file directly, will not lookup 
 	// configuration file so the WithPaths() method can we skipped
 	configFile := "/tmp/my_shiney_config.yaml"
@@ -64,6 +80,23 @@ func main() {
 		WithConfigLookup(false).
 		WithDefaults(defaults).
 		WithFile(configFile).
+		Build(config)
+
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+	}
+
+	// Load multiple config files directly and merge them.
+	// Will not look up configuration file so the WithPaths() method can we skipped
+	configFile1 := "/tmp/my_shiney_config.yaml"
+	configFile2 := "/tmp/my_shiney_secrets.yaml"
+	err = venomoid.Config().WithName("shineyconfig").
+		WithType("yaml").
+		WithErrorOnMissing(true).
+		WithConfigLookup(false).
+		WithDefaults(defaults).
+		WithFile(configFile1).
+		WithFile(configFile2).
 		Build(config)
 
 	if err != nil {
@@ -102,7 +135,7 @@ func main() {
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
-	
+
 	// can be also be called using the exported struct direcly
 	configBuilder := &venomoid.ConfigBuilder{
 		Name:               "shineyconfig",
@@ -114,8 +147,7 @@ func main() {
 	}
 	if err := configBuilder.Build(config); err != nil {
 		fmt.Printf("error: %v\n", err)
-    }
-
+	}
 
 }
 
