@@ -119,7 +119,9 @@ func (c *ConfigBuilder) Build(destStruct interface{}) error {
 				}
 			}
 		}
-	} else if c.AutomaticEnv {
+	}
+
+	if c.AutomaticEnv {
 		viper.AutomaticEnv()
 
 		if c.EnvPrefix != "" {
